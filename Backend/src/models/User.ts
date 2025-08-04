@@ -14,7 +14,6 @@ const userSchema = new mongoose.Schema({
   email: {
     type: String,
     required: true,
-    unique: true,
     trim: true,
     lowercase: true,
   },
@@ -72,6 +71,7 @@ const userSchema = new mongoose.Schema({
   },
  
   googleId: String,
+  firebaseUid: String,
   isEmailVerified: { type: Boolean, default: false },
   isPhoneVerified: { type: Boolean, default: false },
   emailVerificationToken: String,
@@ -92,6 +92,7 @@ const userSchema = new mongoose.Schema({
 // Index for better query performance
 userSchema.index({ email: 1 });
 userSchema.index({ googleId: 1 });
+userSchema.index({ firebaseUid: 1 });
 userSchema.index({ phoneNumber: 1 });
 
 export const User = mongoose.model('User', userSchema);

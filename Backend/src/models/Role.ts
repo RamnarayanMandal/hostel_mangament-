@@ -5,7 +5,6 @@ const roleSchema = new mongoose.Schema({
   name: {
     type: String,
     required: true,
-    unique: true,
     trim: true,
     lowercase: true,
   },
@@ -34,7 +33,7 @@ const roleSchema = new mongoose.Schema({
   createdBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: true,
+    required: false, // Made optional, will be validated in service layer
   },
   updatedBy: {
     type: mongoose.Schema.Types.ObjectId,

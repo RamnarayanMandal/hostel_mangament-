@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { USER_GENDER } from '../types/enum';
+import { USER_GENDER, USER_ROLE } from '../types/enum';
 
 // Common validation patterns
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -32,9 +32,7 @@ export const signupSchema = z.object({
   phoneNumber: z.string()
     .regex(phonePattern, 'Invalid phone number format (10 digits starting with 6-9)'),
   
-  gender: z.nativeEnum(USER_GENDER, {
-    errorMap: () => ({ message: 'Invalid gender selection' })
-  }),
+  gender: z.nativeEnum(USER_GENDER),
   
   dateOfBirth: z.string()
     .optional()
@@ -51,6 +49,8 @@ export const signupSchema = z.object({
   state: z.string().optional(),
   city: z.string().optional(),
   country: z.string().optional(),
+  
+  role: z.nativeEnum(USER_ROLE).optional().default(USER_ROLE.STUDENT),
   
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords don't match",

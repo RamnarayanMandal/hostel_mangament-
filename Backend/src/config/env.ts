@@ -29,6 +29,11 @@ const envSchema = z.object({
   GOOGLE_CLIENT_SECRET: z.string().min(1, 'Google Client Secret is required'),
   GOOGLE_REDIRECT_URI: z.string().url('Google Redirect URI must be a valid URL'),
   
+  // Firebase configuration
+  FIREBASE_PROJECT_ID: z.string().min(1, 'Firebase Project ID is required'),
+  FIREBASE_CLIENT_EMAIL: z.string().email('Firebase Client Email must be a valid email'),
+  FIREBASE_PRIVATE_KEY: z.string().min(1, 'Firebase Private Key is required'),
+  
   // Frontend URL (for password reset links)
   FRONTEND_URL: z.string().url('Frontend URL must be a valid URL').default('http://localhost:3000'),
   
@@ -86,6 +91,12 @@ export const config = {
     clientId: env.GOOGLE_CLIENT_ID,
     clientSecret: env.GOOGLE_CLIENT_SECRET,
     redirectUri: env.GOOGLE_REDIRECT_URI,
+  },
+  
+  firebase: {
+    projectId: env.FIREBASE_PROJECT_ID,
+    clientEmail: env.FIREBASE_CLIENT_EMAIL,
+    privateKey: env.FIREBASE_PRIVATE_KEY,
   },
   
   frontend: {

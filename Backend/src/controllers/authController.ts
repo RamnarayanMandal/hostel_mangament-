@@ -12,6 +12,8 @@ import {
   resendOtpSchema,
   googleAuthSchema
 } from '../validations/authValidation';
+import { ResponseHandler } from '../utils/responseHandler';
+import { asyncHandler } from '../middlewares/errorHandler';
 
 export class AuthController {
   private authService: AuthService;
@@ -21,212 +23,92 @@ export class AuthController {
   }
 
   // Signup
-  async signup(req: Request, res: Response) {
-    try {
-      // Validate request body
-      const validatedData = signupSchema.parse(req.body);
+  signup = asyncHandler(async (req: Request, res: Response) => {
+    // Validate request body
+    const validatedData = signupSchema.parse(req.body);
 
-      // Call service
-      const result = await this.authService.signup(validatedData);
+    // Call service
+    const result = await this.authService.signup(validatedData);
 
-      res.status(201).json({
-        success: true,
-        message: result.message,
-        data: {
-          userId: result.userId,
-        },
-      });
-    } catch (error: any) {
-      if (error.name === 'ZodError') {
-        return res.status(400).json({
-          success: false,
-          message: 'Validation error',
-          errors: error.errors,
-        });
-      }
-
-      res.status(400).json({
-        success: false,
-        message: error.message || 'Signup failed',
-      });
-    }
-  }
+    ResponseHandler.created(res, result.message, {
+      userId: result.userId,
+    });
+  });
 
   // Login
-  async login(req: Request, res: Response) {
-    try {
-      // Validate request body
-      const validatedData = loginSchema.parse(req.body);
+  login = asyncHandler(async (req: Request, res: Response) => {
+    // Validate request body
+    const validatedData = loginSchema.parse(req.body);
 
-      // Call service
-      const result = await this.authService.login(validatedData);
+    // Call service
+    const result = await this.authService.login(validatedData);
 
-      res.status(200).json({
-        success: true,
-        message: result.message,
-        data: {
-          token: result.token,
-          user: result.user,
-        },
-      });
-    } catch (error: any) {
-      if (error.name === 'ZodError') {
-        return res.status(400).json({
-          success: false,
-          message: 'Validation error',
-          errors: error.errors,
-        });
-      }
-
-      res.status(401).json({
-        success: false,
-        message: error.message || 'Login failed',
-      });
-    }
-  }
+    ResponseHandler.success(res, result.message, {
+      token: result.token,
+      user: result.user,
+    });
+  });
 
   // Email OTP verification
-  async verifyEmailOTP(req: Request, res: Response) {
-    try {
-      // Validate request body
-      const validatedData = otpVerificationSchema.parse(req.body);
+  verifyEmailOTP = asyncHandler(async (req: Request, res: Response) => {
+    console.log('OTP Verification request body:', req.body);
+    
+    // Validate request body
+    const validatedData = otpVerificationSchema.parse(req.body);
+    console.log('OTP Validation passed:', validatedData);
 
-      // Call service
-      const result = await this.authService.verifyEmailOTP(validatedData);
+    // Call service
+    const result = await this.authService.verifyEmailOTP(validatedData);
 
-      res.status(200).json({
-        success: true,
-        message: result.message,
-      });
-    } catch (error: any) {
-      if (error.name === 'ZodError') {
-        return res.status(400).json({
-          success: false,
-          message: 'Validation error',
-          errors: error.errors,
-        });
-      }
-
-      res.status(400).json({
-        success: false,
-        message: error.message || 'Email verification failed',
-      });
-    }
-  }
+    ResponseHandler.success(res, result.message);
+  });
 
   // Phone OTP verification
-  async verifyPhoneOTP(req: Request, res: Response) {
-    try {
-      // Validate request body
-      const validatedData = phoneOtpVerificationSchema.parse(req.body);
+  verifyPhoneOTP = asyncHandler(async (req: Request, res: Response) => {
+    // Validate request body
+    const validatedData = phoneOtpVerificationSchema.parse(req.body);
 
-      // Call service
-      const result = await this.authService.verifyPhoneOTP(validatedData);
+    // Call service
+    const result = await this.authService.verifyPhoneOTP(validatedData);
 
-      res.status(200).json({
-        success: true,
-        message: result.message,
-      });
-    } catch (error: any) {
-      if (error.name === 'ZodError') {
-        return res.status(400).json({
-          success: false,
-          message: 'Validation error',
-          errors: error.errors,
-        });
-      }
-
-      res.status(400).json({
-        success: false,
-        message: error.message || 'Phone verification failed',
-      });
-    }
-  }
+    ResponseHandler.success(res, result.message);
+  });
 
   // Resend email OTP
-  async resendEmailOTP(req: Request, res: Response) {
-    try {
-      // Validate request body
-      const validatedData = resendOtpSchema.parse(req.body);
+  resendEmailOTP = asyncHandler(async (req: Request, res: Response) => {
+    // Validate request body
+    const validatedData = resendOtpSchema.parse(req.body);
 
-      // Call service
-      const result = await this.authService.resendEmailOTP(validatedData.email);
+    // Call service
+    const result = await this.authService.resendEmailOTP(validatedData.email);
 
-      res.status(200).json({
-        success: true,
-        message: result.message,
-      });
-    } catch (error: any) {
-      if (error.name === 'ZodError') {
-        return res.status(400).json({
-          success: false,
-          message: 'Validation error',
-          errors: error.errors,
-        });
-      }
-
-      res.status(400).json({
-        success: false,
-        message: error.message || 'Failed to resend email OTP',
-      });
-    }
-  }
+    ResponseHandler.success(res, result.message);
+  });
 
   // Resend phone OTP
-  async resendPhoneOTP(req: Request, res: Response) {
-    try {
-      const { phoneNumber } = req.body;
+  resendPhoneOTP = asyncHandler(async (req: Request, res: Response) => {
+    const { phoneNumber } = req.body;
 
-      if (!phoneNumber) {
-        return res.status(400).json({
-          success: false,
-          message: 'Phone number is required',
-        });
-      }
-
-      // Call service
-      const result = await this.authService.resendPhoneOTP(phoneNumber);
-
-      res.status(200).json({
-        success: true,
-        message: result.message,
-      });
-    } catch (error: any) {
-      res.status(400).json({
-        success: false,
-        message: error.message || 'Failed to resend phone OTP',
-      });
+    if (!phoneNumber) {
+      return ResponseHandler.validationError(res, 'Phone number is required', []);
     }
-  }
+
+    // Call service
+    const result = await this.authService.resendPhoneOTP(phoneNumber);
+
+    ResponseHandler.success(res, result.message);
+  });
 
   // Forgot password
-  async forgotPassword(req: Request, res: Response) {
-    try {
-      // Validate request body
-      const validatedData = forgotPasswordSchema.parse(req.body);
+  forgotPassword = asyncHandler(async (req: Request, res: Response) => {
+    // Validate request body
+    const validatedData = forgotPasswordSchema.parse(req.body);
 
-      // Call service
-      const result = await this.authService.forgotPassword(validatedData);
+    // Call service
+    const result = await this.authService.forgotPassword(validatedData);
 
-      res.status(200).json({
-        success: true,
-        message: result.message,
-      });
-    } catch (error: any) {
-      if (error.name === 'ZodError') {
-        return res.status(400).json({
-          success: false,
-          message: 'Validation error',
-          errors: error.errors,
-        });
-      }
-
-      res.status(400).json({
-        success: false,
-        message: error.message || 'Failed to process forgot password request',
-      });
-    }
-  }
+    ResponseHandler.success(res, result.message);
+  });
 
   // Reset password
   async resetPassword(req: Request, res: Response) {

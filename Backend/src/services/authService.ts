@@ -168,10 +168,18 @@ export class AuthService {
   // Email OTP verification
   async verifyEmailOTP(verificationData: OtpVerificationInput) {
     try {
+      console.log('Verifying email OTP for:', verificationData.email);
+      
       const user = await User.findOne({ email: verificationData.email });
       if (!user) {
         throw new Error('User not found');
       }
+
+      console.log('User found:', user.email);
+      console.log('Email verified status:', user.isEmailVerified);
+      console.log('Stored OTP:', user.emailVerificationToken);
+      console.log('OTP expires:', user.emailVerificationExpires);
+      console.log('Provided OTP:', verificationData.otp);
 
       if (user.isEmailVerified) {
         throw new Error('Email is already verified');
@@ -186,6 +194,7 @@ export class AuthService {
       }
 
       if (user.emailVerificationToken !== verificationData.otp) {
+        console.log('OTP mismatch - Expected:', user.emailVerificationToken, 'Got:', verificationData.otp);
         throw new Error('Invalid verification code');
       }
 

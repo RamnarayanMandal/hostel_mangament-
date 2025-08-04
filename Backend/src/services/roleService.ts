@@ -37,7 +37,7 @@ export class RoleService {
       if (!existingRole) {
         await Role.create({
           ...roleData,
-          createdBy: 'system', // Special identifier for system-created roles
+          // createdBy is not required for system roles
         });
       }
     }
