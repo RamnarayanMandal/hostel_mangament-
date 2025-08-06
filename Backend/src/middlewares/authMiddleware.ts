@@ -263,25 +263,39 @@ export class AuthMiddleware {
     }
   }
 
-  // Rate limiting for authentication attempts
+  // Rate limiting for authentication attempts (IP + Account based)
   static rateLimitAuth(maxAttempts: number = 5, windowMs: number = 15 * 60 * 1000) {
     const attempts = new Map<string, { count: number; resetTime: number }>();
 
+    // Cleanup expired entries every 5 minutes
+    setInterval(() => {
+      const now = Date.now();
+      for (const [key, value] of attempts.entries()) {
+        if (now > value.resetTime) {
+          attempts.delete(key);
+        }
+      }
+    }, 5 * 60 * 1000);
+
     return (req: Request, res: Response, next: NextFunction) => {
       const ip = req.ip || req.connection.remoteAddress || 'unknown';
+      const email = req.body?.email || 'unknown';
       const now = Date.now();
 
-      const userAttempts = attempts.get(ip);
+      // Create unique key for IP + Email combination
+      const key = `${ip}:${email}`;
+      const userAttempts = attempts.get(key);
       
       if (!userAttempts || now > userAttempts.resetTime) {
-        attempts.set(ip, { count: 1, resetTime: now + windowMs });
+        attempts.set(key, { count: 1, resetTime: now + windowMs });
         return next();
       }
 
       if (userAttempts.count >= maxAttempts) {
+        const remainingTime = Math.ceil((userAttempts.resetTime - now) / (1000 * 60)); // Convert to minutes
         return res.status(429).json({
           success: false,
-          message: 'Too many authentication attempts. Please try again later.',
+          message: `Too many failed attempts, please try again in ${remainingTime} minutes.`,
         });
       }
 

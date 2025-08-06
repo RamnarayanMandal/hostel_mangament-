@@ -12,8 +12,8 @@ const router = express.Router();
 // Authentication routes
 router.use('/auth', authRoutes);
 
-// Firebase Authentication routes
-router.use('/firebase-auth', firebaseAuthRoutes);
+// Firebase Authentication routes (separate from main auth to avoid middleware conflicts)
+router.use('/firebase', firebaseAuthRoutes);
 
 // Role management routes
 router.use('/role', roleRoutes);

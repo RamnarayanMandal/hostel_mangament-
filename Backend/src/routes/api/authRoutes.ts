@@ -6,7 +6,7 @@ const router = Router();
 const authController = new AuthController();
 
 // Public routes (no authentication required)
-router.post('/signup', AuthMiddleware.rateLimitAuth(3, 15 * 60 * 1000), authController.signup.bind(authController));
+router.post('/signup', AuthMiddleware.rateLimitAuth(5, 15 * 60 * 1000), authController.signup.bind(authController));
 router.post('/login', AuthMiddleware.rateLimitAuth(5, 15 * 60 * 1000), authController.login.bind(authController));
 
 // OTP verification routes

@@ -16,7 +16,7 @@ export const signupSchema = z.object({
   lastName: z.string()
     .min(2, 'Last name must be at least 2 characters')
     .max(50, 'Last name must be less than 50 characters')
-    .regex(/^[a-zA-Z\s]+$/, 'Last name can only contain letters and spaces'),
+    .regex(/^[a-zA-Z\s]+$/, 'Last name can only contain letters and spaces').optional(),
   
   email: z.string()
     .email('Invalid email format')
@@ -24,15 +24,15 @@ export const signupSchema = z.object({
     .toLowerCase(),
   
   password: z.string()
-    .min(8, 'Password must be at least 8 characters')
-    .regex(passwordPattern, 'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character'),
+    .min(8, 'Password must be at least 8 characters'),
   
   confirmPassword: z.string(),
   
   phoneNumber: z.string()
-    .regex(phonePattern, 'Invalid phone number format (10 digits starting with 6-9)'),
+    
+    .regex(phonePattern, 'Invalid phone number format (10 digits starting with 6-9)').optional(),
   
-  gender: z.nativeEnum(USER_GENDER),
+  gender: z.nativeEnum(USER_GENDER).optional(),
   
   dateOfBirth: z.string()
     .optional()
