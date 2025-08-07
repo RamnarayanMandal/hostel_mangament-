@@ -2,7 +2,7 @@ import axios from 'axios'
 
 // Create axios instance
 const axiosClient = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api',
+  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3005/api',
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
@@ -44,9 +44,9 @@ axiosClient.interceptors.response.use(
       
       switch (status) {
         case 401:
-          // Unauthorized - clear token and redirect to login
-          localStorage.removeItem('token')
-          window.location.href = '/auth/login'
+          // Unauthorized - don't auto-redirect, let the component handle it
+          // This allows for email verification flow to work properly
+          console.error('Unauthorized access')
           break
         case 403:
           // Forbidden

@@ -16,10 +16,48 @@ export class AppError extends Error {
   }
 }
 
+// Common error classes for specific status codes
+export class ValidationError extends AppError {
+  constructor(message: string) {
+    super(message, 400);
+  }
+}
+
+export class UnauthorizedError extends AppError {
+  constructor(message: string = 'Unauthorized') {
+    super(message, 401);
+  }
+}
+
+export class ForbiddenError extends AppError {
+  constructor(message: string = 'Forbidden') {
+    super(message, 403);
+  }
+}
+
+export class NotFoundError extends AppError {
+  constructor(message: string = 'Resource not found') {
+    super(message, 404);
+  }
+}
+
+export class ConflictError extends AppError {
+  constructor(message: string = 'Conflict') {
+    super(message, 409);
+  }
+}
+
+export class TooManyRequestsError extends AppError {
+  constructor(message: string = 'Too many requests') {
+    super(message, 429);
+  }
+}
+
 // Error response interface
 interface ErrorResponse {
   success: false;
   message: string;
+  statusCode: number;
   errors?: any[];
   stack?: string;
 }
@@ -120,6 +158,7 @@ export const globalErrorHandler = (
   const errorResponse: ErrorResponse = {
     success: false,
     message,
+    statusCode,
   };
 
   // Add errors array if there are validation errors
@@ -148,5 +187,6 @@ export const notFoundHandler = (req: Request, res: Response) => {
   res.status(404).json({
     success: false,
     message: `Route ${req.originalUrl} not found`,
+    statusCode: 404,
   });
 }; 

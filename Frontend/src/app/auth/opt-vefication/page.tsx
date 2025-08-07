@@ -113,42 +113,18 @@ const OTPVerification = () => {
   // Handle success and error messages
   React.useEffect(() => {
     if (verifyOTPMutation.isSuccess) {
-      const { token, user } = verifyOTPMutation.data?.data || {}
+      // Clear signup data from localStorage
+      localStorage.removeItem('signupUserData')
       
-      if (token && user) {
-        // Save auth data to localStorage
-        setAuthData(token, user)
-        
-        // Clear signup data from localStorage
-        localStorage.removeItem('signupUserData')
-        
-                 // Get user role and redirect accordingly
-         const userRole = user.role?.toLowerCase()
-         let redirectPath = '/'
-         
-         switch (userRole) {
-           case 'admin':
-             redirectPath = '/admin'
-             break
-           case 'teacher':
-             redirectPath = '/teacher'
-             break
-           case 'student':
-             redirectPath = '/student'
-             break
-           default:
-             redirectPath = '/'
-         }
-         
-         showSuccess(
-           'Email Verified Successfully!',
-           `Your account has been verified. Welcome, ${user.firstName || 'User'}! Redirecting to ${userRole} dashboard...`
-         )
-        
-        setTimeout(() => {
-          router.push(redirectPath)
-        }, 2000)
-      }
+      showSuccess(
+        'Email Verified Successfully!',
+        'Your email has been verified successfully. You can now login to your account.'
+      )
+      
+      // Redirect to login page after verification
+      setTimeout(() => {
+        router.push('/auth/login')
+      }, 2000)
     }
   }, [verifyOTPMutation.isSuccess, verifyOTPMutation.data, router])
 

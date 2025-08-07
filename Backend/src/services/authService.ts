@@ -6,6 +6,8 @@ import { SignupInput, LoginInput, OtpVerificationInput, PhoneOtpVerificationInpu
 import { EmailService } from './emailService';
 import { SmsService } from './smsService';
 import { GoogleOAuthService } from './googleOAuthService';
+import { ValidationError, UnauthorizedError, NotFoundError, ConflictError } from '../middlewares/errorHandler';
+
 
 export class AuthService {
   private emailService: EmailService;
@@ -49,13 +51,15 @@ export class AuthService {
       // Check if user already exists
       const existingUser = await User.findOne({ email: userData.email });
       if (existingUser) {
-        throw new Error('User with this email already exists');
+        throw new ConflictError('User with this email already exists');
       }
 
-      // Check if phone number already exists
-      const existingPhone = await User.findOne({ phoneNumber: userData.phoneNumber });
-      if (existingPhone) {
-        throw new Error('User with this phone number already exists');
+      // Check if phone number already exists (only if provided)
+      if (userData.phoneNumber) {
+        const existingPhone = await User.findOne({ phoneNumber: userData.phoneNumber });
+        if (existingPhone) {
+          throw new ConflictError('User with this phone number already exists');
+        }
       }
 
       // Hash password
@@ -87,7 +91,9 @@ export class AuthService {
       await user.save();
 
       // Send SMS verification
-      await this.smsService.sendVerificationSMS(userData.phoneNumber, phoneOTP);
+      if (userData.phoneNumber) {
+        await this.smsService.sendVerificationSMS(userData.phoneNumber, phoneOTP);
+      }
 
       return {
         success: true,
@@ -105,17 +111,17 @@ export class AuthService {
       // Find user by email
       const user = await User.findOne({ email: loginData.email });
       if (!user) {
-        throw new Error('Invalid email or password');
+        throw new UnauthorizedError('Invalid email or password');
       }
 
       // Check if account is locked
       if (user.lockUntil && user.lockUntil > new Date()) {
-        throw new Error('Account is temporarily locked. Please try again later.');
+        throw new UnauthorizedError('Account is temporarily locked. Please try again later.');
       }
 
       // Check if user has password (for Google OAuth users)
       if (!user.password) {
-        throw new Error('Please login with Google or reset your password');
+        throw new UnauthorizedError('Please login with Google or reset your password');
       }
 
       // Verify password
@@ -130,7 +136,7 @@ export class AuthService {
         }
         
         await user.save();
-        throw new Error('Invalid email or password');
+        throw new UnauthorizedError('Invalid email or password');
       }
 
       // Reset login attempts on successful login
@@ -140,7 +146,9 @@ export class AuthService {
 
       // Check if email is verified
       if (!user.isEmailVerified) {
-        throw new Error('Please verify your email before logging in');
+        // Resend OTP and throw error to indicate verification needed
+        await this.resendEmailOTP(user.email);
+        throw new UnauthorizedError('Email verification required. A new verification code has been sent to your email. Please verify your email and try logging in again.');
       }
 
       // Generate token
@@ -172,7 +180,7 @@ export class AuthService {
       
       const user = await User.findOne({ email: verificationData.email });
       if (!user) {
-        throw new Error('User not found');
+        throw new NotFoundError('User not found');
       }
 
       console.log('User found:', user.email);
@@ -182,20 +190,20 @@ export class AuthService {
       console.log('Provided OTP:', verificationData.otp);
 
       if (user.isEmailVerified) {
-        throw new Error('Email is already verified');
+        throw new ValidationError('Email is already verified');
       }
 
       if (!user.emailVerificationToken || !user.emailVerificationExpires) {
-        throw new Error('No verification token found. Please request a new one.');
+        throw new ValidationError('No verification token found. Please request a new one.');
       }
 
       if (user.emailVerificationExpires < new Date()) {
-        throw new Error('Verification token has expired. Please request a new one.');
+        throw new ValidationError('Verification token has expired. Please request a new one.');
       }
 
       if (user.emailVerificationToken !== verificationData.otp) {
         console.log('OTP mismatch - Expected:', user.emailVerificationToken, 'Got:', verificationData.otp);
-        throw new Error('Invalid verification code');
+        throw new ValidationError('Invalid verification code');
       }
 
       // Mark email as verified
@@ -218,23 +226,23 @@ export class AuthService {
     try {
       const user = await User.findOne({ phoneNumber: verificationData.phoneNumber });
       if (!user) {
-        throw new Error('User not found');
+        throw new NotFoundError('User not found');
       }
 
       if (user.isPhoneVerified) {
-        throw new Error('Phone number is already verified');
+        throw new ValidationError('Phone number is already verified');
       }
 
       if (!user.phoneVerificationOTP || !user.phoneVerificationExpires) {
-        throw new Error('No verification OTP found. Please request a new one.');
+        throw new ValidationError('No verification OTP found. Please request a new one.');
       }
 
       if (user.phoneVerificationExpires < new Date()) {
-        throw new Error('Verification OTP has expired. Please request a new one.');
+        throw new ValidationError('Verification OTP has expired. Please request a new one.');
       }
 
       if (user.phoneVerificationOTP !== verificationData.otp) {
-        throw new Error('Invalid verification code');
+        throw new ValidationError('Invalid verification code');
       }
 
       // Mark phone as verified
@@ -257,11 +265,11 @@ export class AuthService {
     try {
       const user = await User.findOne({ email });
       if (!user) {
-        throw new Error('User not found');
+        throw new NotFoundError('User not found');
       }
 
       if (user.isEmailVerified) {
-        throw new Error('Email is already verified');
+        throw new ValidationError('Email is already verified');
       }
 
       // Generate new OTP
@@ -287,11 +295,11 @@ export class AuthService {
     try {
       const user = await User.findOne({ phoneNumber });
       if (!user) {
-        throw new Error('User not found');
+        throw new NotFoundError('User not found');
       }
 
       if (user.isPhoneVerified) {
-        throw new Error('Phone number is already verified');
+        throw new ValidationError('Phone number is already verified');
       }
 
       // Generate new OTP
@@ -317,7 +325,7 @@ export class AuthService {
     try {
       const user = await User.findOne({ email: forgotPasswordData.email });
       if (!user) {
-        throw new Error('User not found');
+        throw new NotFoundError('User not found');
       }
 
       // Generate reset token
@@ -338,6 +346,20 @@ export class AuthService {
     }
   }
 
+  // Validate reset token
+  async validateResetToken(token: string): Promise<boolean> {
+    try {
+      const user = await User.findOne({
+        resetPasswordToken: token,
+        resetPasswordExpires: { $gt: new Date() },
+      });
+
+      return !!user;
+    } catch (error) {
+      return false;
+    }
+  }
+
   // Reset password
   async resetPassword(resetPasswordData: ResetPasswordInput) {
     try {
@@ -347,7 +369,7 @@ export class AuthService {
       });
 
       if (!user) {
-        throw new Error('Invalid or expired reset token');
+        throw new ValidationError('Invalid or expired reset token');
       }
 
       // Hash new password
@@ -375,11 +397,11 @@ export class AuthService {
     try {
       const user = await User.findById(userId);
       if (!user) {
-        throw new Error('User not found');
+        throw new NotFoundError('User not found');
       }
 
       if (!user.password) {
-        throw new Error('Cannot change password for Google OAuth users');
+        throw new ValidationError('Cannot change password for Google OAuth users');
       }
 
       // Verify current password
@@ -389,7 +411,7 @@ export class AuthService {
       );
 
       if (!isCurrentPasswordValid) {
-        throw new Error('Current password is incorrect');
+        throw new UnauthorizedError('Current password is incorrect');
       }
 
       // Hash new password
@@ -413,14 +435,14 @@ export class AuthService {
     try {
       const user = await User.findById(userId);
       if (!user) {
-        throw new Error('User not found');
+        throw new NotFoundError('User not found');
       }
 
       // Check if phone number is being changed and if it's already taken
       if (updateData.phoneNumber && updateData.phoneNumber !== user.phoneNumber) {
         const existingPhone = await User.findOne({ phoneNumber: updateData.phoneNumber });
         if (existingPhone) {
-          throw new Error('Phone number is already in use');
+          throw new ConflictError('Phone number is already in use');
         }
         // Reset phone verification if phone number changes
         user.isPhoneVerified = false;
@@ -515,13 +537,28 @@ export class AuthService {
       const user = await User.findById(userId).select('-password -emailVerificationToken -emailVerificationExpires -phoneVerificationOTP -phoneVerificationExpires -resetPasswordToken -resetPasswordExpires');
       
       if (!user) {
-        throw new Error('User not found');
+        throw new NotFoundError('User not found');
       }
 
       return {
         success: true,
         user,
       };
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  // Get user by email (for verification status check)
+  async getUserByEmail(email: string) {
+    try {
+      const user = await User.findOne({ email }).select('-password -emailVerificationToken -emailVerificationExpires -phoneVerificationOTP -phoneVerificationExpires -resetPasswordToken -resetPasswordExpires');
+      
+      if (!user) {
+        throw new NotFoundError('User not found');
+      }
+
+      return user;
     } catch (error) {
       throw error;
     }

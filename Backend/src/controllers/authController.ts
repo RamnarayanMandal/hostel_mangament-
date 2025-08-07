@@ -85,6 +85,48 @@ export class AuthController {
     ResponseHandler.success(res, result.message);
   });
 
+  // Resend email OTP for login (when email not verified)
+  resendEmailOTPForLogin = asyncHandler(async (req: Request, res: Response) => {
+    const { email } = req.body;
+
+    if (!email) {
+      return ResponseHandler.validationError(res, 'Email is required', []);
+    }
+
+    // Call service
+    const result = await this.authService.resendEmailOTP(email);
+
+    ResponseHandler.success(res, 'Verification code sent successfully. Please check your email and verify your account before logging in.');
+  });
+
+  // Check email verification status
+  checkEmailVerification = asyncHandler(async (req: Request, res: Response) => {
+    const { email } = req.query;
+
+    if (!email || typeof email !== 'string') {
+      return ResponseHandler.validationError(res, 'Email is required', []);
+    }
+
+    try {
+      const user = await this.authService.getUserByEmail(email);
+      
+      if (!user) {
+        return ResponseHandler.notFound(res, 'User not found');
+      }
+
+      ResponseHandler.success(res, 'Email verification status retrieved successfully', {
+        email: user.email,
+        isEmailVerified: user.isEmailVerified,
+        isPhoneVerified: user.isPhoneVerified
+      });
+    } catch (error: any) {
+      if (error.statusCode === 404) {
+        return ResponseHandler.notFound(res, 'User not found');
+      }
+      throw error;
+    }
+  });
+
   // Resend phone OTP
   resendPhoneOTP = asyncHandler(async (req: Request, res: Response) => {
     const { phoneNumber } = req.body;
@@ -108,6 +150,36 @@ export class AuthController {
     const result = await this.authService.forgotPassword(validatedData);
 
     ResponseHandler.success(res, result.message);
+  });
+
+  // Validate reset token
+  validateResetToken = asyncHandler(async (req: Request, res: Response) => {
+    const { token } = req.body;
+    
+    if (!token) {
+      return res.status(400).json({
+        success: false,
+        message: 'Reset token is required',
+      });
+    }
+
+    try {
+      const isValid = await this.authService.validateResetToken(token);
+      
+      if (isValid) {
+        ResponseHandler.success(res, 'Token is valid');
+      } else {
+        res.status(400).json({
+          success: false,
+          message: 'Invalid or expired reset token',
+        });
+      }
+    } catch (error: any) {
+      res.status(400).json({
+        success: false,
+        message: error.message || 'Token validation failed',
+      });
+    }
   });
 
   // Reset password

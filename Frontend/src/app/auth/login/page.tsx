@@ -148,12 +148,48 @@ const Login = () => {
   React.useEffect(() => {
     if (loginMutation.isError) {
       console.log('Login error detected:', loginMutation.error)
-      showError(
-        'Login Failed',
-        loginMutation.error?.message || 'Invalid email or password. Please try again.'
-      )
+      console.log('Error message:', loginMutation.error?.message)
+      console.log('Error response:', loginMutation.error?.response?.data)
+      console.log('Full error object:', JSON.stringify(loginMutation.error, null, 2))
+      
+      // Check if it's an email verification error
+      const errorMessage = loginMutation.error?.message || 
+                          loginMutation.error?.response?.data?.message || 
+                          loginMutation.error?.data?.message ||
+                          (loginMutation.error?.response?.data && typeof loginMutation.error.response.data === 'string' ? loginMutation.error.response.data : '') || ''
+      
+      console.log('Extracted error message:', errorMessage)
+      
+      // Check for email verification error in multiple ways
+      const isEmailVerificationError = 
+        errorMessage.includes('Email verification required') ||
+        errorMessage.includes('verify your email') ||
+        (loginMutation.error?.response?.status === 401 && errorMessage.includes('verification'))
+      
+      if (isEmailVerificationError) {
+        console.log('Email verification error detected, redirecting...')
+        showError(
+          'Email Verification Required',
+          'Please verify your email before logging in. Redirecting to verification page...'
+        )
+        
+        // Save email to localStorage for OTP verification page
+        const email = formik.values.email
+        localStorage.setItem('signupUserData', JSON.stringify({ email }))
+        
+        // Redirect to OTP verification page after a short delay
+        setTimeout(() => {
+          router.push('/auth/opt-vefication')
+        }, 2000)
+      } else {
+        console.log('Regular login error, showing error message')
+        showError(
+          'Login Failed',
+          errorMessage || 'Invalid email or password. Please try again.'
+        )
+      }
     }
-  }, [loginMutation.isError, loginMutation.error])
+  }, [loginMutation.isError, loginMutation.error, formik.values.email, router])
 
   React.useEffect(() => {
     if (firebaseAuthMutation.isSuccess) {
@@ -240,12 +276,32 @@ const Login = () => {
 
   React.useEffect(() => {
     if (firebaseAuthMutation.isError) {
-      showError(
-        'Google Login Failed',
-        firebaseAuthMutation.error?.message || 'Failed to sign in with Google. Please try again.'
-      )
+      console.log('Firebase login error detected:', firebaseAuthMutation.error)
+      
+      // Check if it's an email verification error
+      if (firebaseAuthMutation.error?.message?.includes('Email verification required')) {
+        showError(
+          'Email Verification Required',
+          'Please verify your email before logging in. Redirecting to verification page...'
+        )
+        
+        // For Firebase login, we might not have the email in formik, so we'll need to get it from the error or user
+        // This is a fallback - ideally the email should be available
+        const email = formik.values.email || 'user@example.com' // fallback
+        localStorage.setItem('signupUserData', JSON.stringify({ email }))
+        
+        // Redirect to OTP verification page after a short delay
+        setTimeout(() => {
+          router.push('/auth/opt-vefication')
+        }, 2000)
+      } else {
+        showError(
+          'Google Login Failed',
+          firebaseAuthMutation.error?.message || 'Failed to sign in with Google. Please try again.'
+        )
+      }
     }
-  }, [firebaseAuthMutation.isError, firebaseAuthMutation.error])
+  }, [firebaseAuthMutation.isError, firebaseAuthMutation.error, formik.values.email, router])
 
   // Handle Firebase Google login
   const handleFirebaseGoogleLogin = async () => {
@@ -410,9 +466,42 @@ const Login = () => {
                       Remember me
                     </Label>
                   </div>
-                  <a href="/auth/forget-Password" className="text-sm text-blue-600 hover:underline">
-                    Forgot password?
-                  </a>
+                  <div className="flex flex-col items-end space-y-1">
+                    <a href="/auth/forget-Password" className="text-sm text-blue-600 hover:underline">
+                      Forgot password?
+                    </a>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (formik.values.email) {
+                          // Call the resend OTP for login endpoint
+                          fetch('/api/auth/resend-email-otp-for-login', {
+                            method: 'POST',
+                            headers: {
+                              'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({ email: formik.values.email }),
+                          })
+                          .then(response => response.json())
+                          .then(data => {
+                            if (data.success) {
+                              showSuccess('Verification Code Sent', 'A new verification code has been sent to your email.')
+                            } else {
+                              showError('Error', data.message || 'Failed to send verification code.')
+                            }
+                          })
+                          .catch(error => {
+                            showError('Error', 'Failed to send verification code. Please try again.')
+                          })
+                        } else {
+                          showError('Error', 'Please enter your email address first.')
+                        }
+                      }}
+                      className="text-sm text-green-600 hover:underline"
+                    >
+                      Resend verification code
+                    </button>
+                  </div>
                 </StaggerItem>
 
                 {/* Submit Button */}
@@ -435,6 +524,9 @@ const Login = () => {
                     Sign up
                   </a>
                 </StaggerItem>
+
+               
+              
               </StaggerContainer>
             </form>
           </CardContent>

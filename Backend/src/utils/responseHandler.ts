@@ -4,6 +4,7 @@ import { Response } from 'express';
 interface ApiResponse {
   success: boolean;
   message: string;
+  statusCode?: number;
   data?: any;
   meta?: {
     page?: number;
@@ -84,6 +85,7 @@ export class ResponseHandler {
     const response: any = {
       success: false,
       message,
+      statusCode,
     };
 
     if (errors && errors.length > 0) {
