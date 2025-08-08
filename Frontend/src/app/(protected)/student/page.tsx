@@ -2,7 +2,6 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { 
-  Home, 
   Building2, 
   Calendar, 
   CreditCard,
@@ -15,7 +14,6 @@ import {
   StaggerItem, 
   FadeIn, 
   SlideUp, 
-  Scale,
   HoverLift
 } from '@/components/ui/motion'
 
@@ -73,7 +71,7 @@ export default function StudentDashboard() {
       <SlideUp>
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Student Dashboard</h1>
-          <p className="text-gray-600">Welcome back! Here's your hostel overview.</p>
+          <p className="text-gray-600">Welcome back! Here&apos;s your hostel overview.</p>
         </div>
       </SlideUp>
 

@@ -11,7 +11,6 @@ import {
   ResendOTPData,
   AuthResponse,
   UserData,
-  GoogleAuthResponse,
   OTPResponse,
   ProfileResponse
 } from '@/types'

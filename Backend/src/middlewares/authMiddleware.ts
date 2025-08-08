@@ -1,20 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { User } from '../models/User';
+import { IUser } from '../types/user';
 import { PERMISSION, ROLE_PERMISSIONS, ROLE_HIERARCHY, USER_ROLE } from '../types/enum';
-
-// Extend Express Request interface to include user
-declare global {
-  namespace Express {
-    interface Request {
-      user?: {
-        userId: string;
-        email: string;
-        role: string;
-      };
-    }
-  }
-}
 
 export class AuthMiddleware {
   // Verify JWT token
@@ -42,7 +30,7 @@ export class AuthMiddleware {
       const decoded = jwt.verify(token, process.env.JWT_SECRET!) as any;
 
       // Check if user still exists
-      const user = await User.findById(decoded.userId).select('-password');
+      const user = await User.findById(decoded.userId).select('-password') as IUser | null;
       if (!user) {
         return res.status(401).json({
           success: false,

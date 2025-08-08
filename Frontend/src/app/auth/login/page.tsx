@@ -9,13 +9,13 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Eye, EyeOff, Mail, Lock, User } from 'lucide-react'
+import { Eye, EyeOff, Mail, Lock } from 'lucide-react'
 import { showSuccess, showError } from '@/lib/sweetAlert'
 import { useLogin, useFirebaseAuth } from '@/hooks/useAuth'
 import { useFirebaseAuth as useFirebaseAuthHook } from '@/hooks/useFirebaseAuth'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { motion } from 'framer-motion'
-import { setAuthData, getUserRole } from '@/lib/auth'
+import { setAuthData } from '@/lib/auth'
 import { 
   Scale, 
   StaggerContainer, 
@@ -32,7 +32,7 @@ const loginSchema = z.object({
   rememberMe: z.boolean().optional()
 })
 
-type LoginFormData = z.infer<typeof loginSchema>
+
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false)

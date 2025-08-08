@@ -7,7 +7,7 @@ import { toFormikValidationSchema } from 'zod-formik-adapter'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardDescription, CardTitle } from '@/components/ui/card'
 import { showSuccess, showError } from '@/lib/sweetAlert'
 import { useResetPassword } from '@/hooks/useAuth'
 import { useRouter, useSearchParams } from 'next/navigation'
@@ -31,7 +31,7 @@ const resetPasswordSchema = z.object({
   path: ["confirmPassword"],
 })
 
-type ResetPasswordFormData = z.infer<typeof resetPasswordSchema>
+
 
 const ResetPassword = () => {
   const [showPassword, setShowPassword] = useState(false)
@@ -65,7 +65,7 @@ const ResetPassword = () => {
   console.log('Search params:', searchParams.toString())
 
   // React Query mutations
-  const resetPasswordMutation = useResetPassword()
+  const resetPasswordMutation = useResetPassword();
 
   // Formik form
   const formik = useFormik({

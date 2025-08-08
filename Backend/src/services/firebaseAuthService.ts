@@ -186,14 +186,12 @@ export class FirebaseAuthService {
   private generateJWT(user: any): string {
     return jwt.sign(
       {
-        userId: user._id,
+        userId: user._id.toString(),
         email: user.email,
         role: user.role,
       },
-      config.jwt.secret,
-      {
-        expiresIn: config.jwt.expiresIn,
-      }
+      process.env.JWT_SECRET!,
+      { expiresIn: '7d' }
     );
   }
 

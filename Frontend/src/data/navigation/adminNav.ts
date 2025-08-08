@@ -9,7 +9,7 @@ import {
   BarChart3,
   Shield,
   Bell,
-  Search,
+  
   CreditCard,
   MessageSquare,
   HelpCircle

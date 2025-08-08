@@ -15,7 +15,6 @@ import {
   StaggerItem, 
   FadeIn, 
   SlideUp, 
-  Scale,
   HoverLift
 } from '@/components/ui/motion'
 
@@ -73,7 +72,7 @@ export default function TeacherDashboard() {
       <SlideUp>
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Teacher Dashboard</h1>
-          <p className="text-gray-600">Welcome back! Here's your teaching overview.</p>
+          <p className="text-gray-600">Welcome back! Here&apos;s your teaching overview.</p>
         </div>
       </SlideUp>
 
@@ -108,7 +107,7 @@ export default function TeacherDashboard() {
             <FadeIn>
               <Card>
                 <CardHeader>
-                  <CardTitle>Today's Classes</CardTitle>
+                  <CardTitle>Today&apos;s Classes</CardTitle>
                   <CardDescription>Your scheduled classes for today</CardDescription>
                 </CardHeader>
                 <CardContent>

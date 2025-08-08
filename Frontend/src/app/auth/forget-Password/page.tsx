@@ -7,7 +7,7 @@ import { toFormikValidationSchema } from 'zod-formik-adapter'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Card, CardContent, CardHeader  } from '@/components/ui/card'
+import { Card, CardContent  } from '@/components/ui/card'
 import { showSuccess, showError } from '@/lib/sweetAlert'
 import { useForgotPassword } from '@/hooks/useAuth'
 import { useRouter } from 'next/navigation'
@@ -57,7 +57,7 @@ const ForgotPassword = () => {
       router.push('/auth/login');
      
     }
-  }, [forgotPasswordMutation.isSuccess])
+  }, [forgotPasswordMutation.isSuccess, router]);
 
   React.useEffect(() => {
     if (forgotPasswordMutation.isError) {
@@ -124,10 +124,10 @@ const ForgotPassword = () => {
                         <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
                         Enter your email address below
                       </li>
-                      <li className="flex items-center gap-2">
-                        <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
-                        We'll send you a secure reset link
-                      </li>
+                                                        <li className="flex items-center gap-2">
+                                    <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+                                    We&apos;ll send you a secure reset link
+                                  </li>
                       <li className="flex items-center gap-2">
                         <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
                         Click the link to set a new password

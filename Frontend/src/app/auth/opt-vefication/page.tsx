@@ -11,8 +11,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { showSuccess, showError } from '@/lib/sweetAlert'
 import { useVerifyEmailOTP, useResendEmailOTP } from '@/hooks/useAuth'
 import { useRouter } from 'next/navigation'
-import { motion } from 'framer-motion'
-import { setAuthData } from '@/lib/auth'
 import { 
   Scale, 
   StaggerContainer, 
@@ -31,7 +29,6 @@ const otpSchema = z.object({
     .regex(/^\d{6}$/, 'OTP must contain only numbers')
 })
 
-type OTPFormData = z.infer<typeof otpSchema>
 
 const OTPVerification = () => {
   const [showValidationErrors, setShowValidationErrors] = useState(false)

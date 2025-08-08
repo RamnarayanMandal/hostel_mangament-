@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import { USER_ROLE, USER_STATUS, USER_GENDER } from '../types/enum';
+import { IUser } from '../types/user';
 
 const userSchema = new mongoose.Schema({
 
@@ -95,4 +96,4 @@ userSchema.index({ googleId: 1 });
 userSchema.index({ firebaseUid: 1 });
 userSchema.index({ phoneNumber: 1 });
 
-export const User = mongoose.model('User', userSchema);
+export const User = mongoose.model<IUser>('User', userSchema);

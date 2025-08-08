@@ -51,7 +51,7 @@ const signupSchema = z.object({
   path: ["confirmPassword"]
 })
 
-type SignupFormData = z.infer<typeof signupSchema>
+
 
 const SignUp = () => {
   const [showPassword, setShowPassword] = useState(false)
