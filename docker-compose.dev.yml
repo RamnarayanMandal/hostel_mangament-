@@ -1,0 +1,86 @@
+version: '3.8'
+
+services:
+  # MongoDB Database
+  mongodb:
+    image: mongo:7.0
+    container_name: hostel_mongodb_dev
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password123
+      MONGO_INITDB_DATABASE: hostel_management_dev
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_dev_data:/data/db
+    networks:
+      - hostel_dev_network
+
+  # Backend API Service (Development)
+  backend:
+    build:
+      context: ./Backend
+      dockerfile: Dockerfile.dev
+    container_name: hostel_backend_dev
+    restart: unless-stopped
+    environment:
+      NODE_ENV: development
+      PORT: 3005
+      MONGODB_URI: mongodb://admin:password123@mongodb:27017/hostel_management_dev?authSource=admin
+      JWT_SECRET: dev-jwt-secret-key
+      JWT_EXPIRES_IN: 7d
+      EMAIL_HOST: smtp.gmail.com
+      EMAIL_PORT: 587
+      EMAIL_USER: your-email@gmail.com
+      EMAIL_PASS: your-app-password
+      FIREBASE_PROJECT_ID: your-firebase-project-id
+      FIREBASE_PRIVATE_KEY: your-firebase-private-key
+      FIREBASE_CLIENT_EMAIL: your-firebase-client-email
+    ports:
+      - "3005:3005"
+    depends_on:
+      - mongodb
+    networks:
+      - hostel_dev_network
+    volumes:
+      - ./Backend:/app
+      - /app/node_modules
+      - ./Backend/uploads:/app/uploads
+    command: npm run dev
+
+  # Frontend Next.js Service (Development)
+  frontend:
+    build:
+      context: ./Frontend
+      dockerfile: Dockerfile.dev
+    container_name: hostel_frontend_dev
+    restart: unless-stopped
+    environment:
+      NODE_ENV: development
+      NEXT_PUBLIC_API_URL: http://localhost:3005/api
+      NEXT_PUBLIC_FIREBASE_API_KEY: your-firebase-api-key
+      NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: your-project.firebaseapp.com
+      NEXT_PUBLIC_FIREBASE_PROJECT_ID: your-firebase-project-id
+      NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: your-project.appspot.com
+      NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: your-sender-id
+      NEXT_PUBLIC_FIREBASE_APP_ID: your-app-id
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    networks:
+      - hostel_dev_network
+    volumes:
+      - ./Frontend:/app
+      - /app/node_modules
+      - /app/.next
+    command: npm run dev
+
+volumes:
+  mongodb_dev_data:
+    driver: local
+
+networks:
+  hostel_dev_network:
+    driver: bridge
