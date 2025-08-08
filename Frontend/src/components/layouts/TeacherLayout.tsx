@@ -33,6 +33,7 @@ import {
   DropdownMenuTrigger 
 } from '@/components/ui/dropdown-menu'
 import { Breadcrumb } from '../ui/breadcrumb'
+import { UserData } from '@/types/auth'
 
 interface TeacherLayoutProps {
   children: React.ReactNode
@@ -40,7 +41,7 @@ interface TeacherLayoutProps {
 
 export default function TeacherLayout({ children }: TeacherLayoutProps) {
   const router = useRouter()
-  const [user, setUser] = useState<any>(null)
+  const [user, setUser] = useState<UserData | null>(null)
 
   useEffect(() => {
     const userData = getUser()

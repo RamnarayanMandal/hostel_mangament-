@@ -1,5 +1,5 @@
 // Common Types
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
   success: boolean
   message: string
   statusCode?:number
@@ -72,7 +72,7 @@ export interface TableColumn<T> {
   key: keyof T
   label: string
   sortable?: boolean
-  render?: (value: any, row: T) => React.ReactNode
+  render?: (value: unknown, row: T) => React.ReactNode
   width?: string
 }
 

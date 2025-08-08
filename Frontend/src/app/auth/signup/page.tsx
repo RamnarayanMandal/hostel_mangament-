@@ -56,7 +56,7 @@ const signupSchema = z.object({
 const SignUp = () => {
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const [isFormSubmitted, setIsFormSubmitted] = useState(false)
+
   const [showValidationErrors, setShowValidationErrors] = useState(false)
   const router = useRouter();
 
@@ -80,9 +80,8 @@ const SignUp = () => {
     },
     validationSchema: toFormikValidationSchema(signupSchema),
     onSubmit: (values) => {
-      setIsFormSubmitted(true)
       setShowValidationErrors(true)
-      const { confirmPassword, agreeToTerms, ...userData } = values
+      const { confirmPassword, ...userData } = values
       // Add STUDENT role by default and include confirmPassword
       const signupData = { ...userData, confirmPassword, role: 'student' as const }
       signupMutation.mutate(signupData)

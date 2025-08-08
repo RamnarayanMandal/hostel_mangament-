@@ -8,11 +8,6 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Building2, Menu} from "lucide-react"
 
-
-interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {
-  children: React.ReactNode
-}
-
 interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode
 }
@@ -21,7 +16,6 @@ export function Sidebar({ className, children, ...props }: SidebarProps) {
   return (
     <motion.div
       className={cn("pb-12", className)}
-      {...props}
       initial={{ opacity: 0, x: -20 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.3 }}
@@ -45,7 +39,6 @@ export function SidebarHeader({ className, children, ...props }: SidebarHeaderPr
   return (
     <motion.div
       className={cn("flex h-14 items-center border-b px-4", className)}
-      {...props}
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, delay: 0.1 }}
@@ -107,7 +100,6 @@ export function SidebarMobile({ children, trigger }: SidebarMobileProps) {
             <Building2 className="h-8 w-8 text-green-600" />
             <span className="text-xl font-bold text-gray-900">HostelHub</span>
           </div>
-
         </SidebarHeader>
         <SidebarContent>
           {children}

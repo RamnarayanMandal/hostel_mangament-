@@ -34,6 +34,7 @@ import { useRouter } from 'next/navigation'
 import { clearAuthData, getUser } from '@/lib/auth'
 import { useEffect, useState } from 'react'
 import { Breadcrumb } from '@/components/ui/breadcrumb'
+import { UserData } from '@/types/auth'
 
 interface AdminLayoutProps {
   children: React.ReactNode
@@ -41,7 +42,7 @@ interface AdminLayoutProps {
 
 export default function AdminLayout({ children }: AdminLayoutProps) {
   const router = useRouter()
-  const [user, setUser] = useState<any>(null)
+  const [user, setUser] = useState<UserData | null>(null)
 
   useEffect(() => {
     const userData = getUser()

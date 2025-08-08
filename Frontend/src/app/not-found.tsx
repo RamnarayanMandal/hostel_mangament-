@@ -19,7 +19,7 @@ export default function NotFound() {
             Page Not Found
           </CardTitle>
           <CardDescription className="text-gray-600 text-lg">
-            Oops! The page you're looking for doesn't exist.
+            Oops! The page you&apos;re looking for doesn&apos;t exist.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -28,7 +28,7 @@ export default function NotFound() {
               The page you requested might have been moved, deleted, or you entered the wrong URL.
             </p>
             <p>
-              Don't worry, we'll help you get back on track!
+              Don&apos;t worry, we&apos;ll help you get back on track!
             </p>
           </div>
           

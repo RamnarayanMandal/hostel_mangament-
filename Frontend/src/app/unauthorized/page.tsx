@@ -19,13 +19,13 @@ export default function UnauthorizedPage() {
             Access Denied
           </CardTitle>
           <CardDescription className="text-gray-600">
-            You don't have permission to access this page
+            You don&apos;t have permission to access this page
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="text-center text-sm text-gray-500">
             <p>
-              The page you're trying to access requires specific permissions that you don't currently have.
+              The page you&apos;re trying to access requires specific permissions that you don&apos;t currently have.
             </p>
             <p className="mt-2">
               Please contact your administrator if you believe this is an error.

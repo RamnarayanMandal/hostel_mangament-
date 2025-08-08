@@ -189,7 +189,7 @@ const OTPVerification = () => {
             </StaggerItem>
             <StaggerItem>
               <CardDescription className="text-center">
-                We've sent a 6-digit verification code to your email address
+                We&apos;ve sent a 6-digit verification code to your email address
                 {userData?.email && (
                   <div className="mt-2 text-sm text-gray-600">
                     Email: {userData.email}
@@ -258,7 +258,7 @@ const OTPVerification = () => {
                 {/* Resend OTP */}
                 <StaggerItem className="text-center">
                   <p className="text-sm text-gray-600 mb-2">
-                    Didn't receive the code?
+                    Didn&apos;t receive the code?
                   </p>
                   <Button
                     type="button"

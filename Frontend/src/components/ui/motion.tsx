@@ -437,7 +437,7 @@ export const PageTransition = ({ children, className = "", ...props }: MotionCom
 
 // Utility function to create custom motion components
 export const createMotionComponent = (variants: Variants, defaultDelay = 0) => {
-  return ({ children, className = "", delay = defaultDelay, ...props }: MotionComponentProps) => (
+  const MotionComponent = ({ children, className = "", delay = defaultDelay, ...props }: MotionComponentProps) => (
     <MotionDiv
       className={className}
       variants={variants}
@@ -447,6 +447,9 @@ export const createMotionComponent = (variants: Variants, defaultDelay = 0) => {
       {children}
     </MotionDiv>
   );
+  
+  MotionComponent.displayName = 'MotionComponent';
+  return MotionComponent;
 };
 
  

@@ -56,7 +56,7 @@ const Login = () => {
     validationSchema: toFormikValidationSchema(loginSchema),
     onSubmit: (values) => {
       setShowValidationErrors(true)
-      const { rememberMe, ...loginData } = values
+      const { ...loginData } = values
       loginMutation.mutate(loginData)
     }
   })
@@ -155,7 +155,6 @@ const Login = () => {
       // Check if it's an email verification error
       const errorMessage = loginMutation.error?.message || 
                           loginMutation.error?.response?.data?.message || 
-                          loginMutation.error?.data?.message ||
                           (loginMutation.error?.response?.data && typeof loginMutation.error.response.data === 'string' ? loginMutation.error.response.data : '') || ''
       
       console.log('Extracted error message:', errorMessage)
@@ -164,7 +163,7 @@ const Login = () => {
       const isEmailVerificationError = 
         errorMessage.includes('Email verification required') ||
         errorMessage.includes('verify your email') ||
-        (loginMutation.error?.response?.status === 401 && errorMessage.includes('verification'))
+        errorMessage.includes('verification')
       
       if (isEmailVerificationError) {
         console.log('Email verification error detected, redirecting...')
@@ -519,7 +518,7 @@ const Login = () => {
 
                 {/* Signup Link */}
                 <StaggerItem className="text-center text-sm">
-                  Don't have an account?{' '}
+                  Don&apos;t have an account?{' '}
                   <a href="/auth/signup" className="text-blue-600 hover:underline font-medium">
                     Sign up
                   </a>

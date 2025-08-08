@@ -38,7 +38,10 @@ axiosClient.interceptors.response.use(
       const { status, data } = error.response
       
       // Create a custom error object with the server message
-      const customError = new Error(data?.message || 'Something went wrong') as any
+      const customError = new Error(data?.message || 'Something went wrong') as Error & {
+        response: any
+        status: number
+      }
       customError.response = error.response
       customError.status = status
       

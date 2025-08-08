@@ -10,7 +10,6 @@ import {
   OTPVerificationData,
   ResendOTPData,
   AuthResponse,
-  UserData,
   OTPResponse,
   ProfileResponse
 } from '@/types'

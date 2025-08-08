@@ -31,6 +31,7 @@ import {
   DropdownMenuTrigger 
 } from '@/components/ui/dropdown-menu'
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar'
+import { UserData } from '@/types/auth'
 
 interface StudentLayoutProps {
   children: React.ReactNode
@@ -38,7 +39,7 @@ interface StudentLayoutProps {
 
 export default function StudentLayout({ children }: StudentLayoutProps) {
   const router = useRouter()
-  const [user, setUser] = useState<any>(null)
+  const [user, setUser] = useState<UserData | null>(null)
 
   useEffect(() => {
     const userData = getUser()
