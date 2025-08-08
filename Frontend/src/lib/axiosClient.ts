@@ -2,7 +2,7 @@ import axios from 'axios'
 
 // Create axios instance
 const axiosClient = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3005/api',
+  baseURL: process.env.NEXT_PUBLIC_API_URL || 'https://api.hostel-mangament.ramnarayan.shop/api',
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
