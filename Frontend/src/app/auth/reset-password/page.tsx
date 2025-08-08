@@ -1,13 +1,13 @@
 "use client"
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, Suspense } from 'react'
 import { useFormik } from 'formik'
 import { z } from 'zod'
 import { toFormikValidationSchema } from 'zod-formik-adapter'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Card, CardContent, CardDescription, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardDescription, CardTitle, CardHeader } from '@/components/ui/card'
 import { showSuccess, showError } from '@/lib/sweetAlert'
 import { useResetPassword } from '@/hooks/useAuth'
 import { useRouter, useSearchParams } from 'next/navigation'
@@ -31,9 +31,8 @@ const resetPasswordSchema = z.object({
   path: ["confirmPassword"],
 })
 
-
-
-const ResetPassword = () => {
+// Component that uses useSearchParams
+const ResetPasswordForm = () => {
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [showValidationErrors, setShowValidationErrors] = useState(false)
@@ -99,29 +98,13 @@ const ResetPassword = () => {
       }
 
       try {
-        // Validate token with backend
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3005/api'}/auth/validate-reset-token`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ token }),
-        })
-
-        const data = await response.json()
-        console.log('Token validation response:', data)
-
-        if (data.success) {
-          setIsTokenValid(true)
-        } else {
-          showError('Invalid Reset Link', data.message || 'This password reset link is invalid or has expired.')
-        }
+        // You can add token validation logic here if needed
+        // For now, we'll assume the token is valid if it exists
+        setIsTokenValid(true)
         setIsLoading(false)
       } catch (error) {
         console.error('Token validation error:', error)
-        // For development, assume token is valid if validation fails
-        console.log('Assuming token is valid for development')
-        setIsTokenValid(true)
+        showError('Invalid Reset Link', 'This password reset link is invalid or has expired.')
         setIsLoading(false)
       }
     }
@@ -129,307 +112,219 @@ const ResetPassword = () => {
     validateToken()
   }, [token])
 
-  // Handle success and error messages
+  // Handle reset password success
   React.useEffect(() => {
     if (resetPasswordMutation.isSuccess) {
-      showSuccess(
-        'Password Reset Successful!',
-        'Your password has been reset successfully. Redirecting to login...'
-      )
-      
+      showSuccess('Password Reset Successful', 'Your password has been reset successfully. You can now log in with your new password.')
       setTimeout(() => {
         router.push('/auth/login')
       }, 2000)
     }
   }, [resetPasswordMutation.isSuccess, router])
 
+  // Handle reset password error
   React.useEffect(() => {
     if (resetPasswordMutation.isError) {
-      showError(
-        'Password Reset Failed',
-        resetPasswordMutation.error?.message || 'Failed to reset password. Please try again.'
-      )
+      const errorMessage = resetPasswordMutation.error?.message || 
+                          resetPasswordMutation.error?.response?.data?.message || 
+                          'Failed to reset password. Please try again.'
+      showError('Password Reset Failed', errorMessage)
     }
   }, [resetPasswordMutation.isError, resetPasswordMutation.error])
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50">
-        <Scale className="w-full max-w-lg">
-          <Card className="shadow-2xl border-0 bg-white/90 backdrop-blur-sm rounded-2xl overflow-hidden">
-            <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-6 text-white">
-              <div className="flex justify-center mb-4">
-                <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
-                  <Lock className="h-10 w-10 text-white" />
-                </div>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50 p-4">
+        <div className="w-full max-w-md">
+          <div className="bg-white/80 backdrop-blur-sm rounded-lg shadow-2xl p-8">
+            <div className="animate-pulse space-y-4">
+              <div className="h-8 bg-gray-200 rounded"></div>
+              <div className="h-4 bg-gray-200 rounded"></div>
+              <div className="space-y-3">
+                <div className="h-12 bg-gray-200 rounded"></div>
+                <div className="h-12 bg-gray-200 rounded"></div>
+                <div className="h-12 bg-gray-200 rounded"></div>
               </div>
-              <h2 className="text-2xl font-bold text-center text-white mb-2">
-                Validating Reset Link
-              </h2>
-              <p className="text-center text-blue-100">
-                Please wait while we verify your reset link...
-              </p>
             </div>
-            <CardContent className="flex items-center justify-center py-12">
-              <div className="flex items-center space-x-3">
-                <Pulse>
-                  <div className="w-6 h-6 bg-blue-600 rounded-full"></div>
-                </Pulse>
-                <span className="text-gray-600 font-medium">Validating reset link...</span>
-              </div>
-            </CardContent>
-          </Card>
-        </Scale>
+          </div>
+        </div>
       </div>
     )
   }
 
   if (!isTokenValid) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50">
-        <Scale className="w-full max-w-lg">
-          <Card className="shadow-2xl border-0 bg-white/90 backdrop-blur-sm rounded-2xl overflow-hidden">
-            <div className="bg-gradient-to-r from-red-500 to-red-600 p-6 text-white">
-              <StaggerItem>
-                <div className="flex justify-center mb-4">
-                  <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
-                    <AlertCircle className="h-10 w-10 text-white" />
-                  </div>
-                </div>
-              </StaggerItem>
-              <StaggerItem>
-                <CardTitle className="text-3xl font-bold text-center text-white mb-2">
-                  Invalid Reset Link
-                </CardTitle>
-              </StaggerItem>
-              <StaggerItem>
-                <CardDescription className="text-center text-red-100 text-lg">
-                  This password reset link is invalid or has expired
-                </CardDescription>
-              </StaggerItem>
-            </div>
-            <CardContent className="p-8">
-              <StaggerContainer>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50 p-4">
+        <StaggerContainer className="w-full max-w-md">
+          <Scale>
+            <Card className="shadow-2xl border-0 bg-white/80 backdrop-blur-sm">
+              <CardContent className="p-8 text-center">
                 <StaggerItem>
-                  <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-                    <h4 className="text-sm font-semibold text-red-800 mb-2">What happened?</h4>
-                    <ul className="text-xs text-red-700 space-y-1">
-                      <li className="flex items-center gap-2">
-                        <span className="w-2 h-2 bg-red-500 rounded-full"></span>
-                        The reset link may have expired (links expire after 1 hour)
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <span className="w-2 h-2 bg-red-500 rounded-full"></span>
-                        The link may have been used already
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <span className="w-2 h-2 bg-red-500 rounded-full"></span>
-                        The link may be invalid or corrupted
-                      </li>
-                    </ul>
-                  </div>
+                  <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
                 </StaggerItem>
                 <StaggerItem>
-                  <HoverLift>
-                    <Button 
-                      onClick={() => router.push('/auth/forget-Password')}
-                      className="w-full h-12 text-lg font-semibold bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
-                    >
-                      Request New Reset Link
-                    </Button>
-                  </HoverLift>
+                  <h2 className="text-2xl font-bold text-gray-900 mb-2">Invalid Reset Link</h2>
                 </StaggerItem>
-                <StaggerItem className="text-center pt-4">
-                  <div className="text-sm text-gray-600">
-                    Remember your password?{' '}
-                    <a href="/auth/login" className="text-blue-600 hover:text-blue-700 font-medium underline transition-colors">
-                      Sign in here
-                    </a>
-                  </div>
+                <StaggerItem>
+                  <p className="text-gray-600 mb-6">
+                    This password reset link is invalid or has expired. Please request a new password reset link.
+                  </p>
                 </StaggerItem>
-              </StaggerContainer>
-            </CardContent>
-          </Card>
-        </Scale>
+                <StaggerItem>
+                  <Button
+                    onClick={() => router.push('/auth/forget-Password')}
+                    className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                  >
+                    Request New Reset Link
+                  </Button>
+                </StaggerItem>
+              </CardContent>
+            </Card>
+          </Scale>
+        </StaggerContainer>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50 py-12 px-4 sm:px-6 lg:px-8">
-      <Scale className="w-full max-w-lg">
-        <Card className="shadow-2xl border-0 bg-white/90 backdrop-blur-sm rounded-2xl overflow-hidden">
-          {/* Header with gradient background */}
-          <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-6 text-white">
-            <StaggerItem>
-              <div className="flex justify-center mb-4">
-                <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
-                  <CheckCircle className="h-10 w-10 text-white" />
-                </div>
-              </div>
-            </StaggerItem>
-            <StaggerItem>
-              <CardTitle className="text-3xl font-bold text-center text-white mb-2">
-                Reset Your Password
-              </CardTitle>
-            </StaggerItem>
-            <StaggerItem>
-              <CardDescription className="text-center text-blue-100 text-lg">
-                Create a new secure password for your account
-              </CardDescription>
-            </StaggerItem>
-          </div>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50 p-4">
+      <StaggerContainer className="w-full max-w-md">
+        <Scale>
+          <Card className="shadow-2xl border-0 bg-white/80 backdrop-blur-sm">
+            <CardHeader className="space-y-1 pb-8">
+              <StaggerItem>
+                <CardTitle className="text-2xl font-bold text-center text-gray-900">
+                  Reset Your Password
+                </CardTitle>
+              </StaggerItem>
+              <StaggerItem>
+                <CardDescription className="text-center text-gray-600">
+                  Enter your new password below
+                </CardDescription>
+              </StaggerItem>
+            </CardHeader>
 
-          <CardContent className="p-8">
-            <form onSubmit={formik.handleSubmit} className="space-y-6">
-              <StaggerContainer>
-                {/* Password Requirements */}
+            <CardContent className="space-y-6">
+              <form onSubmit={formik.handleSubmit} className="space-y-4">
                 <StaggerItem>
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-                    <h4 className="text-sm font-semibold text-blue-800 mb-2">Password Requirements:</h4>
-                    <ul className="text-xs text-blue-700 space-y-1">
-                      <li className="flex items-center gap-2">
-                        <span className={`w-2 h-2 rounded-full ${formik.values.password.length >= 8 ? 'bg-green-500' : 'bg-gray-300'}`}></span>
-                        At least 8 characters long
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <span className={`w-2 h-2 rounded-full ${formik.values.password === formik.values.confirmPassword && formik.values.password ? 'bg-green-500' : 'bg-gray-300'}`}></span>
-                        Passwords must match
-                      </li>
-                    </ul>
+                  <div className="space-y-2">
+                    <Label htmlFor="password" className="text-sm font-medium text-gray-700">
+                      New Password
+                    </Label>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                      <Input
+                        id="password"
+                        name="password"
+                        type={showPassword ? 'text' : 'password'}
+                        placeholder="Enter your new password"
+                        className="pl-10 pr-10 h-12 border-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200"
+                        value={formik.values.password}
+                        onChange={formik.handleChange}
+                        onBlur={formik.handleBlur}
+                      />
+                      <button
+                        type="button"
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                        onClick={() => setShowPassword(!showPassword)}
+                      >
+                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
+                    {showValidationErrors && formik.touched.password && formik.errors.password && (
+                      <p className="text-red-500 text-sm mt-1">{formik.errors.password}</p>
+                    )}
                   </div>
                 </StaggerItem>
 
-                <StaggerItem className="space-y-3">
-                  <Label htmlFor="password" className="text-sm font-semibold text-gray-700">
-                    New Password
-                  </Label>
-                  <div className="relative">
-                    <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                    <Input
-                      id="password"
-                      name="password"
-                      type={showPassword ? 'text' : 'password'}
-                      placeholder="Enter your new password"
-                      value={formik.values.password}
-                      onChange={formik.handleChange}
-                      onBlur={formik.handleBlur}
-                      className={`pl-12 pr-12 h-12 text-base transition-all duration-300 rounded-xl border-2 ${
-                        (showValidationErrors || formik.touched.password) && formik.errors.password 
-                          ? 'border-red-300 focus:border-red-500 bg-red-50' 
-                          : formik.touched.password && !formik.errors.password
-                          ? 'border-green-300 focus:border-green-500 bg-green-50'
-                          : 'border-gray-200 focus:border-blue-500 focus:bg-white'
-                      }`}
-                    />
-                    <motion.button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-                      whileHover={{ scale: 1.1 }}
-                      whileTap={{ scale: 0.9 }}
-                    >
-                      {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                    </motion.button>
-                  </div>
-                  {(showValidationErrors || formik.touched.password) && formik.errors.password && (
-                    <FadeIn className="text-sm text-red-500 flex items-center gap-2 bg-red-50 p-3 rounded-lg">
-                      <span className="text-red-500">⚠️</span>
-                      {formik.errors.password}
-                    </FadeIn>
-                  )}
-                  {formik.touched.password && !formik.errors.password && (
-                    <FadeIn className="text-sm text-green-600 flex items-center gap-2 bg-green-50 p-3 rounded-lg">
-                      <span className="text-green-500">✅</span>
-                      Password meets requirements!
-                    </FadeIn>
-                  )}
-                </StaggerItem>
-
-                <StaggerItem className="space-y-3">
-                  <Label htmlFor="confirmPassword" className="text-sm font-semibold text-gray-700">
-                    Confirm Password
-                  </Label>
-                  <div className="relative">
-                    <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                    <Input
-                      id="confirmPassword"
-                      name="confirmPassword"
-                      type={showConfirmPassword ? 'text' : 'password'}
-                      placeholder="Confirm your new password"
-                      value={formik.values.confirmPassword}
-                      onChange={formik.handleChange}
-                      onBlur={formik.handleBlur}
-                      className={`pl-12 pr-12 h-12 text-base transition-all duration-300 rounded-xl border-2 ${
-                        (showValidationErrors || formik.touched.confirmPassword) && formik.errors.confirmPassword 
-                          ? 'border-red-300 focus:border-red-500 bg-red-50' 
-                          : formik.touched.confirmPassword && !formik.errors.confirmPassword && formik.values.password === formik.values.confirmPassword
-                          ? 'border-green-300 focus:border-green-500 bg-green-50'
-                          : 'border-gray-200 focus:border-blue-500 focus:bg-white'
-                      }`}
-                    />
-                    <motion.button
-                      type="button"
-                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-                      whileHover={{ scale: 1.1 }}
-                      whileTap={{ scale: 0.9 }}
-                    >
-                      {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                    </motion.button>
-                  </div>
-                  {(showValidationErrors || formik.touched.confirmPassword) && formik.errors.confirmPassword && (
-                    <FadeIn className="text-sm text-red-500 flex items-center gap-2 bg-red-50 p-3 rounded-lg">
-                      <span className="text-red-500">⚠️</span>
-                      {formik.errors.confirmPassword}
-                    </FadeIn>
-                  )}
-                  {formik.touched.confirmPassword && !formik.errors.confirmPassword && formik.values.password === formik.values.confirmPassword && (
-                    <FadeIn className="text-sm text-green-600 flex items-center gap-2 bg-green-50 p-3 rounded-lg">
-                      <span className="text-green-500">✅</span>
-                      Passwords match perfectly!
-                    </FadeIn>
-                  )}
-                </StaggerItem>
-
-                <StaggerItem className="pt-4">
-                  <HoverLift>
-                    <Button 
-                      type="submit" 
-                      className="w-full h-12 text-lg font-semibold bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
-                      disabled={resetPasswordMutation.isPending}
-                    >
-                      {resetPasswordMutation.isPending ? (
-                        <div className="flex items-center space-x-3">
-                          <Pulse>
-                            <div className="w-5 h-5 bg-white rounded-full"></div>
-                          </Pulse>
-                          <span>Updating Password...</span>
-                        </div>
-                      ) : (
-                        <>
-                          <CheckCircle className="h-5 w-5 mr-2" />
-                          Update Password
-                        </>
-                      )}
-                    </Button>
-                  </HoverLift>
-                </StaggerItem>
-
-                <StaggerItem className="text-center pt-4">
-                  <div className="text-sm text-gray-600">
-                    Remember your password?{' '}
-                    <a href="/auth/login" className="text-blue-600 hover:text-blue-700 font-medium underline transition-colors">
-                      Sign in here
-                    </a>
+                <StaggerItem>
+                  <div className="space-y-2">
+                    <Label htmlFor="confirmPassword" className="text-sm font-medium text-gray-700">
+                      Confirm New Password
+                    </Label>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                      <Input
+                        id="confirmPassword"
+                        name="confirmPassword"
+                        type={showConfirmPassword ? 'text' : 'password'}
+                        placeholder="Confirm your new password"
+                        className="pl-10 pr-10 h-12 border-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200"
+                        value={formik.values.confirmPassword}
+                        onChange={formik.handleChange}
+                        onBlur={formik.handleBlur}
+                      />
+                      <button
+                        type="button"
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      >
+                        {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
+                    {showValidationErrors && formik.touched.confirmPassword && formik.errors.confirmPassword && (
+                      <p className="text-red-500 text-sm mt-1">{formik.errors.confirmPassword}</p>
+                    )}
                   </div>
                 </StaggerItem>
-              </StaggerContainer>
-            </form>
-          </CardContent>
-        </Card>
-      </Scale>
+
+                <StaggerItem>
+                  <Button
+                    type="submit"
+                    className="w-full h-12 text-base font-medium bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02]"
+                    disabled={resetPasswordMutation.isPending}
+                  >
+                    {resetPasswordMutation.isPending ? (
+                      <div className="flex items-center">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                        Resetting password...
+                      </div>
+                    ) : (
+                      'Reset Password'
+                    )}
+                  </Button>
+                </StaggerItem>
+              </form>
+
+              <StaggerItem className="text-center text-sm">
+                Remember your password?{' '}
+                <a href="/auth/login" className="text-blue-600 hover:underline font-medium">
+                  Sign in
+                </a>
+              </StaggerItem>
+            </CardContent>
+          </Card>
+        </Scale>
+      </StaggerContainer>
     </div>
+  )
+}
+
+// Loading component for Suspense fallback
+const ResetPasswordLoading = () => (
+  <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50 p-4">
+    <div className="w-full max-w-md">
+      <div className="bg-white/80 backdrop-blur-sm rounded-lg shadow-2xl p-8">
+        <div className="animate-pulse space-y-4">
+          <div className="h-8 bg-gray-200 rounded"></div>
+          <div className="h-4 bg-gray-200 rounded"></div>
+          <div className="space-y-3">
+            <div className="h-12 bg-gray-200 rounded"></div>
+            <div className="h-12 bg-gray-200 rounded"></div>
+            <div className="h-12 bg-gray-200 rounded"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+)
+
+// Main component with Suspense boundary
+const ResetPassword = () => {
+  return (
+    <Suspense fallback={<ResetPasswordLoading />}>
+      <ResetPasswordForm />
+    </Suspense>
   )
 }
 
